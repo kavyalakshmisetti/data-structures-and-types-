@@ -25,7 +25,7 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(({
   isOpen,
   onClose,
 }, ref) => {
-  const [isHoveringNav, setIsHoveringNav] = useState<boolean>(false);
+  const [hoveredItemId, setHoveredItemId] = useState<TabType | null>(null);
 
   // Close on Escape key press
   useEffect(() => {
@@ -149,12 +149,12 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(({
         {/* Navigation Items */}
         <div className="p-3.5 flex-1 flex flex-col overflow-y-auto custom-scrollbar bg-white dark:bg-slate-900">
           <nav
-            className="space-y-1.5 flex-1 group/nav"
-            onMouseEnter={() => setIsHoveringNav(true)}
-            onMouseLeave={() => setIsHoveringNav(false)}
+            className="space-y-1.5 flex-1"
+            onMouseLeave={() => setHoveredItemId(null)}
           >
             {navItems.map((item) => {
               const isActive = currentTab === item.id;
+              const isHovered = hoveredItemId === item.id;
               const Icon = item.icon;
 
               return (
@@ -162,7 +162,8 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(({
                   key={item.id}
                   id={`nav-${item.id}`}
                   onClick={() => handleItemClick(item.id)}
-                  onMouseEnter={() => setIsHoveringNav(true)}
+                  onMouseEnter={() => setHoveredItemId(item.id)}
+                  onMouseLeave={() => setHoveredItemId(null)}
                   className={`group w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-sm transition-all cursor-pointer ${
                     isActive
                       ? 'bg-blue-50/70 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 shadow-2xs'
@@ -192,9 +193,13 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(({
                     </span>
                   </div>
 
-                  {/* Performance Representation badge */}
+                  {/* Performance Representation badge - only visible when cursor is hovering this item */}
                   <span
-                    className={`text-xs font-mono font-bold tracking-wider shrink-0 ml-2 select-none px-2 py-0.5 rounded-lg transition-colors ${
+                    className={`text-xs font-mono font-bold tracking-wider shrink-0 ml-2 select-none px-2 py-0.5 rounded-lg transition-all duration-150 ease-out ${
+                      isHovered
+                        ? 'opacity-100 scale-100'
+                        : 'opacity-0 scale-95 pointer-events-none'
+                    } group-hover:opacity-100 group-hover:scale-100 ${
                       isActive
                         ? 'bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-400'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200'
