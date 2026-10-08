@@ -22,7 +22,6 @@ import {
   Zap,
   FolderGit2,
   Globe,
-  Check,
 } from 'lucide-react';
 import { TabType, UserProgress } from '../../types';
 import { soundEffects } from '../../services/sound';
@@ -40,21 +39,6 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
   onUpdateProgress,
 }) => {
   const completedSections = progress.completedOverviewSections || [];
-
-  const toggleSection = (secId: number) => {
-    soundEffects.playClick();
-    if (!onUpdateProgress) return;
-    onUpdateProgress((prev) => {
-      const current = prev.completedOverviewSections || [];
-      const updated = current.includes(secId)
-        ? current.filter((id) => id !== secId)
-        : [...current, secId];
-      return {
-        ...prev,
-        completedOverviewSections: updated,
-      };
-    });
-  };
 
   useEffect(() => {
     if (!onUpdateProgress) return;
@@ -267,34 +251,13 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
       {/* ─── 1. THE MAIN IDEA ─── */}
       <div id="overview-sec-1" data-section-id="1" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-8 lg:p-10 shadow-xs transition-colors">
         {/* Section Heading */}
-        <div className="flex items-center justify-between gap-3 mb-6 sm:mb-8 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900/50 shadow-2xs">
-              <Lightbulb className="w-4 h-4 stroke-[2.4]" />
-            </div>
-            <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-              1. The Main Idea
-            </h2>
+        <div className="flex items-center gap-3 mb-6 sm:mb-8">
+          <div className="w-9 h-9 rounded-full bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900/50 shadow-2xs">
+            <Lightbulb className="w-4 h-4 stroke-[2.4]" />
           </div>
-
-          <button
-            onClick={() => toggleSection(1)}
-            className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-all cursor-pointer flex items-center gap-1 ${
-              completedSections.includes(1)
-                ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400'
-                : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400'
-            }`}
-            title={completedSections.includes(1) ? 'Click to mark unread' : 'Click to mark read'}
-          >
-            {completedSections.includes(1) ? (
-              <>
-                <Check className="w-3 h-3" />
-                <span>Read</span>
-              </>
-            ) : (
-              <span>Mark read</span>
-            )}
-          </button>
+          <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+            1. The Main Idea
+          </h2>
         </div>
 
         {/* 2-Column Split */}
@@ -372,34 +335,13 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
       {/* ─── 2. CONCEPT ROADMAP ─── */}
       <div id="overview-sec-2" data-section-id="2" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-8 lg:p-10 shadow-xs transition-colors">
         {/* Section Heading */}
-        <div className="flex items-center justify-between gap-3 mb-8 sm:mb-10 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900/50 shadow-2xs">
-              <BookOpen className="w-4 h-4 stroke-[2.4]" />
-            </div>
-            <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-              2. Concept Roadmap
-            </h2>
+        <div className="flex items-center gap-3 mb-8 sm:mb-10">
+          <div className="w-9 h-9 rounded-full bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900/50 shadow-2xs">
+            <BookOpen className="w-4 h-4 stroke-[2.4]" />
           </div>
-
-          <button
-            onClick={() => toggleSection(2)}
-            className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-all cursor-pointer flex items-center gap-1 ${
-              completedSections.includes(2)
-                ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400'
-                : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400'
-            }`}
-            title={completedSections.includes(2) ? 'Click to mark unread' : 'Click to mark read'}
-          >
-            {completedSections.includes(2) ? (
-              <>
-                <Check className="w-3 h-3" />
-                <span>Read</span>
-              </>
-            ) : (
-              <span>Mark read</span>
-            )}
-          </button>
+          <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+            2. Concept Roadmap
+          </h2>
         </div>
 
         {/* 5-Node Timeline with Dotted Connecting Line */}
@@ -480,34 +422,13 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
       {/* ─── 3. WHY THIS TOPIC MATTERS ─── */}
       <div id="overview-sec-3" data-section-id="3" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-8 lg:p-10 shadow-xs transition-colors">
         {/* Section Heading */}
-        <div className="flex items-center justify-between gap-3 mb-6 sm:mb-8 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900/50 shadow-2xs">
-              <Star className="w-4 h-4 stroke-[2.4]" />
-            </div>
-            <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
-              3. Why This Topic Matters
-            </h2>
+        <div className="flex items-center gap-3 mb-6 sm:mb-8">
+          <div className="w-9 h-9 rounded-full bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900/50 shadow-2xs">
+            <Star className="w-4 h-4 stroke-[2.4]" />
           </div>
-
-          <button
-            onClick={() => toggleSection(3)}
-            className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-all cursor-pointer flex items-center gap-1 ${
-              completedSections.includes(3)
-                ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400'
-                : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400'
-            }`}
-            title={completedSections.includes(3) ? 'Click to mark unread' : 'Click to mark read'}
-          >
-            {completedSections.includes(3) ? (
-              <>
-                <Check className="w-3 h-3" />
-                <span>Read</span>
-              </>
-            ) : (
-              <span>Mark read</span>
-            )}
-          </button>
+          <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+            3. Why This Topic Matters
+          </h2>
         </div>
 
         {/* 3 Color-Coded Feature Cards */}

@@ -25,7 +25,7 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(({
   isOpen,
   onClose,
 }, ref) => {
-  const [hoveredItemId, setHoveredItemId] = useState<TabType | null>(null);
+  const [isMenuHovered, setIsMenuHovered] = useState<boolean>(false);
 
   // Close on Escape key press
   useEffect(() => {
@@ -37,6 +37,13 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
+
+  // Reset hover state when menu closes
+  useEffect(() => {
+    if (!isOpen) {
+      setIsMenuHovered(false);
+    }
+  }, [isOpen]);
 
   const navItems: {
     id: TabType;
@@ -121,7 +128,9 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(({
       id="main-sidebar-navigation"
       role="navigation"
       aria-label="Sidebar Navigation"
-      className={`h-full shrink-0 overflow-hidden bg-white dark:bg-slate-900 border-r border-slate-200/90 dark:border-slate-800 flex flex-col justify-between select-none transition-all duration-300 ease-out z-30 ${
+      onMouseEnter={() => setIsMenuHovered(true)}
+      onMouseLeave={() => setIsMenuHovered(false)}
+      className={`group/menu h-full shrink-0 overflow-hidden bg-white dark:bg-slate-900 border-r border-slate-200/90 dark:border-slate-800 flex flex-col justify-between select-none transition-all duration-300 ease-out z-30 ${
         isOpen ? 'w-[280px] sm:w-[300px] opacity-100' : 'w-0 opacity-0 border-r-0 pointer-events-none'
       }`}
     >
@@ -148,13 +157,9 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(({
 
         {/* Navigation Items */}
         <div className="p-3.5 flex-1 flex flex-col overflow-y-auto custom-scrollbar bg-white dark:bg-slate-900">
-          <nav
-            className="space-y-1.5 flex-1"
-            onMouseLeave={() => setHoveredItemId(null)}
-          >
+          <nav className="space-y-1.5 flex-1">
             {navItems.map((item) => {
               const isActive = currentTab === item.id;
-              const isHovered = hoveredItemId === item.id;
               const Icon = item.icon;
 
               return (
@@ -162,8 +167,6 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(({
                   key={item.id}
                   id={`nav-${item.id}`}
                   onClick={() => handleItemClick(item.id)}
-                  onMouseEnter={() => setHoveredItemId(item.id)}
-                  onMouseLeave={() => setHoveredItemId(null)}
                   className={`group w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-sm transition-all cursor-pointer ${
                     isActive
                       ? 'bg-blue-50/70 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 shadow-2xs'
@@ -193,13 +196,13 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(({
                     </span>
                   </div>
 
-                  {/* Performance Representation badge - only visible when cursor is hovering this item */}
+                  {/* Performance Representation badge - appears simultaneously for all topics when menu is hovered */}
                   <span
-                    className={`text-xs font-mono font-bold tracking-wider shrink-0 ml-2 select-none px-2 py-0.5 rounded-lg transition-all duration-150 ease-out ${
-                      isHovered
-                        ? 'opacity-100 scale-100'
-                        : 'opacity-0 scale-95 pointer-events-none'
-                    } group-hover:opacity-100 group-hover:scale-100 ${
+                    className={`text-xs font-mono font-bold tracking-wider shrink-0 ml-2 select-none px-2 py-0.5 rounded-lg transition-all duration-200 ease-out ${
+                      isMenuHovered
+                        ? 'opacity-100 scale-100 translate-x-0'
+                        : 'opacity-0 scale-95 translate-x-1 pointer-events-none group-hover/menu:opacity-100 group-hover/menu:scale-100 group-hover/menu:translate-x-0 group-hover/menu:pointer-events-auto'
+                    } ${
                       isActive
                         ? 'bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-400'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200'

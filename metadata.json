@@ -1,6 +1,6 @@
 {
-  "name": "Remix Remix AlgoLearn-Stack",
-  "description": "Imported from GitHub: kavyalakshmisetti/AlgoLearn-Stack",
+  "name": "Data Structures and Types | AlgoLearn",
+  "description": "Comprehensive interactive educational platform on Data Structures and Types, covering taxonomy, primitives, non-primitives, linear, non-linear, common operations, and trade-offs.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
