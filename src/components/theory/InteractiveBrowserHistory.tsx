@@ -34,12 +34,6 @@ export const InteractiveBrowserHistory: React.FC = () => {
     setCurrentPage(nextP);
   };
 
-  const handleReset = () => {
-    setBackStack(['google.com', 'github.com']);
-    setCurrentPage('stackoverflow.com');
-    setForwardStack([]);
-  };
-
   return (
     <div className="bg-slate-50 dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 space-y-5 transition-colors">
       <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
@@ -49,12 +43,6 @@ export const InteractiveBrowserHistory: React.FC = () => {
             Browser Back & Forward Dual-Stack Engine
           </span>
         </div>
-        <button
-          onClick={handleReset}
-          className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer"
-        >
-          <RotateCcw className="w-3 h-3" /> Reset
-        </button>
       </div>
 
       {/* Browser Bar Simulation */}

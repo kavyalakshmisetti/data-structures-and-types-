@@ -5,13 +5,12 @@ import {
   Trash2,
   Eye,
   CheckCircle2,
-  RotateCcw,
   Shuffle,
   ArrowUpDown,
   Copy,
   Sparkles,
   Search,
-  RefreshCw,
+  Repeat,
   Sliders,
   Play,
   Layers,
@@ -406,7 +405,7 @@ export const LabOperationsDeck: React.FC<LabOperationsDeckProps> = ({
                 <span className="font-mono font-bold text-xs text-emerald-600 dark:text-emerald-400">
                   REVERSE()
                 </span>
-                <RefreshCw className="w-3.5 h-3.5 text-emerald-500" />
+                <ArrowUpDown className="w-3.5 h-3.5 text-emerald-500" />
               </div>
               <p className="text-[10px] text-slate-500 dark:text-slate-400">
                 Invert LIFO ordering
@@ -457,7 +456,7 @@ export const LabOperationsDeck: React.FC<LabOperationsDeckProps> = ({
                 <span className="font-mono font-bold text-xs text-amber-600 dark:text-amber-400">
                   ROTATE
                 </span>
-                <RotateCcw className="w-3.5 h-3.5 text-amber-500" />
+                <Repeat className="w-3.5 h-3.5 text-amber-500" />
               </div>
               <p className="text-[10px] text-slate-500 dark:text-slate-400">
                 Shift bottom to TOP

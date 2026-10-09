@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Play, RotateCcw, Calculator } from 'lucide-react';
+import { Play, Calculator } from 'lucide-react';
 import { soundEffects } from '../../services/sound';
 
 export const InteractiveExpressionConverter: React.FC = () => {
@@ -10,7 +10,13 @@ export const InteractiveExpressionConverter: React.FC = () => {
   const [message, setMessage] = useState('Postfix expression: 5 3 + 2 * → Equivalent to (5 + 3) * 2');
 
   const handleNext = () => {
-    if (step >= tokens.length) return;
+    if (step >= tokens.length) {
+      // Loop over or stay at end
+      setStep(0);
+      setStack([]);
+      setMessage('Postfix expression: 5 3 + 2 * → Equivalent to (5 + 3) * 2');
+      return;
+    }
     const token = tokens[step];
     soundEffects.playClick();
 
@@ -34,12 +40,6 @@ export const InteractiveExpressionConverter: React.FC = () => {
     setStep((prev) => prev + 1);
   };
 
-  const handleReset = () => {
-    setStep(0);
-    setStack([]);
-    setMessage('Postfix expression: 5 3 + 2 * → Equivalent to (5 + 3) * 2');
-  };
-
   return (
     <div className="bg-slate-50 dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 space-y-4 transition-colors">
       <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
@@ -49,12 +49,6 @@ export const InteractiveExpressionConverter: React.FC = () => {
             Postfix Expression Evaluator
           </span>
         </div>
-        <button
-          onClick={handleReset}
-          className="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-1 cursor-pointer"
-        >
-          <RotateCcw className="w-3 h-3" /> Reset
-        </button>
       </div>
 
       {/* Token stream */}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Minus, Eye, RotateCcw, AlertTriangle, CheckCircle2, Info } from 'lucide-react';
+import { Plus, Minus, Eye, AlertTriangle, CheckCircle2, Info } from 'lucide-react';
 import { soundEffects } from '../../services/sound';
 
 interface InteractiveStackSandboxProps {
@@ -76,16 +76,6 @@ export const InteractiveStackSandbox: React.FC<InteractiveStackSandboxProps> = (
     const topVal = items[items.length - 1];
     setMessage({
       text: `🔍 PEEK() returned ${topVal}: Read value at TOP (Index ${items.length - 1}). Stack remains unchanged.`,
-      type: 'info',
-    });
-  };
-
-  const handleReset = () => {
-    soundEffects.playClick();
-    setItems(initialItems);
-    setInputValue(40);
-    setMessage({
-      text: `🔄 Stack reset to initial state.`,
       type: 'info',
     });
   };
@@ -174,12 +164,6 @@ export const InteractiveStackSandbox: React.FC<InteractiveStackSandboxProps> = (
               className="px-3 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1 cursor-pointer"
             >
               <Eye className="w-3.5 h-3.5" /> PEEK()
-            </button>
-            <button
-              onClick={handleReset}
-              className="px-3 py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" /> Reset
             </button>
           </div>
 

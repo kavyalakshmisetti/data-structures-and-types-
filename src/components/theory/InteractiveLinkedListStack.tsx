@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Minus, ArrowRight, ArrowDown, RotateCcw, Sparkles } from 'lucide-react';
+import { Plus, Minus, ArrowRight, ArrowDown, Sparkles } from 'lucide-react';
 import { soundEffects } from '../../services/sound';
 
 export const InteractiveLinkedListStack: React.FC = () => {
@@ -34,12 +34,6 @@ export const InteractiveLinkedListStack: React.FC = () => {
     );
   };
 
-  const handleReset = () => {
-    soundEffects.playClick();
-    setNodes([30, 20, 10]);
-    setLog('Reset Linked List stack to [30] -> [20] -> [10] -> NULL.');
-  };
-
   return (
     <div className="bg-slate-50 dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 space-y-5">
       {/* Header */}
@@ -65,12 +59,6 @@ export const InteractiveLinkedListStack: React.FC = () => {
             className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-40 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer"
           >
             <Minus className="w-3.5 h-3.5" /> Pop Node
-          </button>
-          <button
-            onClick={handleReset}
-            className="p-1.5 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-          >
-            <RotateCcw className="w-4 h-4" />
           </button>
         </div>
       </div>

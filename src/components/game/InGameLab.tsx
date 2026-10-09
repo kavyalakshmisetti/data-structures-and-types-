@@ -1113,7 +1113,7 @@ export const InGameLab: React.FC<InGameLabProps> = ({
                         if (bracketStep >= bracketTokens.length) {
                           setBracketStep(0);
                           setBracketSimStack([]);
-                          setBracketSimMessage('Reset. Click Step Next to begin.');
+                          setBracketSimMessage('Ready. Click Step Next to begin.');
                           return;
                         }
                         const token = bracketTokens[bracketStep];

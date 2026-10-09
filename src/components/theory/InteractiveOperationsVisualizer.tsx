@@ -8,7 +8,6 @@ import {
   Minus,
   CheckCircle2,
   Play,
-  RotateCcw,
   Clock,
 } from 'lucide-react';
 import { soundEffects } from '../../services/sound';
@@ -151,13 +150,6 @@ export const InteractiveOperationsVisualizer: React.FC = () => {
               className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
               <Play className="w-3.5 h-3.5 fill-current" /> Run Simulation
-            </button>
-            <button
-              onClick={resetState}
-              className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-800 cursor-pointer"
-              title="Reset"
-            >
-              <RotateCcw className="w-4 h-4" />
             </button>
           </div>
         </div>

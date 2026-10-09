@@ -47,6 +47,8 @@ export const EducationalVideoPlayer: React.FC<EducationalVideoPlayerProps> = ({
   const progressTrackRef = useRef<HTMLDivElement>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevVolumeRef = useRef<number>(1);
+  const maxWatchedTimeRef = useRef<number>(0);
+  const watchedSecondsSetRef = useRef<Set<number>>(new Set());
 
   // Time formatter helper: converts seconds to 00:00 format
   const formatTime = (seconds: number): string => {
@@ -68,11 +70,13 @@ export const EducationalVideoPlayer: React.FC<EducationalVideoPlayerProps> = ({
     setCurrentTime(0);
     setIsPlaying(false);
     setDuration(activeLesson.duration || 0);
+    maxWatchedTimeRef.current = 0;
+    watchedSecondsSetRef.current = new Set();
 
     if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
-      videoRef.current.playbackRate = playbackSpeed;
+      videoRef.current.playbackRate = Math.min(1, playbackSpeed);
       videoRef.current.volume = isMuted ? 0 : volume;
       videoRef.current.muted = isMuted;
       try {
@@ -160,11 +164,12 @@ export const EducationalVideoPlayer: React.FC<EducationalVideoPlayerProps> = ({
     showAndScheduleHide();
   };
 
-  // Speed change
+  // Speed change: fast-forwarding disabled, max 1x speed
   const handleSpeedChange = (speed: number) => {
-    setPlaybackSpeed(speed);
+    const safeSpeed = Math.min(1, Math.max(0.5, speed));
+    setPlaybackSpeed(safeSpeed);
     if (videoRef.current) {
-      videoRef.current.playbackRate = speed;
+      videoRef.current.playbackRate = safeSpeed;
     }
     showAndScheduleHide();
   };
@@ -202,12 +207,18 @@ export const EducationalVideoPlayer: React.FC<EducationalVideoPlayerProps> = ({
     showAndScheduleHide();
   };
 
-  // Interactive seeking along progress bar
+  // Interactive seeking along progress bar: BACKWARD NAVIGATION ONLY
   const seekToClientX = (clientX: number) => {
     if (!progressTrackRef.current || !videoRef.current) return;
     const rect = progressTrackRef.current.getBoundingClientRect();
     const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     const targetTime = ratio * (duration || activeLesson.duration || 1);
+    
+    // Strict restriction: Prevent forward seeking. Only backward navigation is permitted.
+    if (targetTime > currentTime + 0.1) {
+      return;
+    }
+    
     videoRef.current.currentTime = targetTime;
     setCurrentTime(targetTime);
   };
@@ -215,11 +226,19 @@ export const EducationalVideoPlayer: React.FC<EducationalVideoPlayerProps> = ({
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(true);
-    seekToClientX(e.clientX);
-    try {
-      (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    } catch {}
+    if (!progressTrackRef.current) return;
+    const rect = progressTrackRef.current.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const targetTime = ratio * (duration || activeLesson.duration || 1);
+
+    // Only allow starting drag / seek if navigating backwards
+    if (targetTime <= currentTime + 0.1) {
+      setIsDragging(true);
+      seekToClientX(e.clientX);
+      try {
+        (e.target as HTMLElement).setPointerCapture(e.pointerId);
+      } catch {}
+    }
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -251,7 +270,22 @@ export const EducationalVideoPlayer: React.FC<EducationalVideoPlayerProps> = ({
   // Video element events
   const handleTimeUpdate = () => {
     if (videoRef.current && !isDragging) {
-      setCurrentTime(videoRef.current.currentTime);
+      const vTime = videoRef.current.currentTime;
+      setCurrentTime(vTime);
+      if (!videoRef.current.paused) {
+        watchedSecondsSetRef.current.add(Math.floor(vTime));
+        maxWatchedTimeRef.current = Math.max(maxWatchedTimeRef.current, vTime);
+      }
+    }
+  };
+
+  // Block native forward seeking attempts
+  const handleSeeking = () => {
+    if (videoRef.current) {
+      if (videoRef.current.currentTime > maxWatchedTimeRef.current + 0.3) {
+        videoRef.current.currentTime = maxWatchedTimeRef.current;
+        setCurrentTime(maxWatchedTimeRef.current);
+      }
     }
   };
 
@@ -261,7 +295,7 @@ export const EducationalVideoPlayer: React.FC<EducationalVideoPlayerProps> = ({
       if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) {
         setDuration(dur);
       }
-      videoRef.current.playbackRate = playbackSpeed;
+      videoRef.current.playbackRate = Math.min(1, playbackSpeed);
       videoRef.current.volume = isMuted ? 0 : volume;
       videoRef.current.muted = isMuted;
     }
@@ -279,7 +313,12 @@ export const EducationalVideoPlayer: React.FC<EducationalVideoPlayerProps> = ({
   const handleEnded = () => {
     setIsPlaying(false);
     setControlsVisible(true);
-    if (onLessonComplete) {
+    const targetDuration = duration || activeLesson.duration || 60;
+    const requiredSeconds = Math.floor(targetDuration * 0.9);
+    const watchedCount = watchedSecondsSetRef.current.size;
+
+    // Verified playback: Award points only after entire video has legitimately been played to completion
+    if (watchedCount >= requiredSeconds && onLessonComplete) {
       onLessonComplete(activeLesson.id);
     }
   };
@@ -362,17 +401,10 @@ export const EducationalVideoPlayer: React.FC<EducationalVideoPlayerProps> = ({
         e.preventDefault();
         handleTogglePlay();
       } else if (e.code === 'ArrowLeft') {
+        // Backward navigation only
         e.preventDefault();
         if (videoRef.current) {
           const target = Math.max(0, videoRef.current.currentTime - 5);
-          videoRef.current.currentTime = target;
-          setCurrentTime(target);
-          showAndScheduleHide();
-        }
-      } else if (e.code === 'ArrowRight') {
-        e.preventDefault();
-        if (videoRef.current) {
-          const target = Math.min(duration, videoRef.current.currentTime + 5);
           videoRef.current.currentTime = target;
           setCurrentTime(target);
           showAndScheduleHide();
@@ -415,6 +447,7 @@ export const EducationalVideoPlayer: React.FC<EducationalVideoPlayerProps> = ({
         preload="auto"
         playsInline
         onTimeUpdate={handleTimeUpdate}
+        onSeeking={handleSeeking}
         onLoadedMetadata={handleLoadedMetadata}
         onDurationChange={handleDurationChange}
         onPlay={() => setIsPlaying(true)}
@@ -620,9 +653,9 @@ export const EducationalVideoPlayer: React.FC<EducationalVideoPlayerProps> = ({
 
           {/* RIGHT CONTROLS: Playback Speed & Fullscreen */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* 8. PLAYBACK SPEED (0.5x, 1x, 1.5x, 2x) */}
+            {/* 8. PLAYBACK SPEED (0.5x, 1x - Fast-forwarding disabled) */}
             <div className="flex items-center p-0.5 rounded-xl bg-white/10 border border-white/10 text-xs font-mono font-bold">
-              {[0.5, 1, 1.5, 2].map((spd) => (
+              {[0.5, 1].map((spd) => (
                 <button
                   key={spd}
                   onClick={() => handleSpeedChange(spd)}

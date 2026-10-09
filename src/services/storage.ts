@@ -1,4 +1,80 @@
-import { UserProgress, Achievement } from '../types';
+import { UserProgress, Achievement, QuizQuestionOutcome, TopicVideoProgress, TopicScoringData } from '../types';
+
+export const calculateTopicScoring = (
+  videos: Record<number, TopicVideoProgress> = {},
+  quizQuestions: Record<number, QuizQuestionOutcome> = {}
+): TopicScoringData => {
+  const v1 = videos[1]?.completed ? 25 : 0;
+  const v2 = videos[2]?.completed ? 25 : 0;
+  const visualizationPoints = v1 + v2;
+  const completedVideosCount = (videos[1]?.completed ? 1 : 0) + (videos[2]?.completed ? 1 : 0);
+
+  let quizScore = 0;
+  let quizCorrectCount = 0;
+  let quizWrongCount = 0;
+  let quizUnansweredCount = 0;
+  let answeredOrTimedOutQuizCount = 0;
+
+  for (let qId = 1; qId <= 10; qId++) {
+    const qOutcome = quizQuestions[qId];
+    if (qOutcome) {
+      answeredOrTimedOutQuizCount++;
+      quizScore += qOutcome.pointsAwarded;
+      if (qOutcome.status === 'correct') {
+        quizCorrectCount++;
+      } else if (qOutcome.status === 'incorrect') {
+        quizWrongCount++;
+      } else if (qOutcome.status === 'unanswered') {
+        quizUnansweredCount++;
+      }
+    }
+  }
+
+  // Authoritative: Overall Topic Score = Visualization Points Earned + max(0, Quiz Points Earned)
+  // Capped at 100, minimum 0
+  const overallTopicScore = Math.min(
+    100,
+    Math.max(0, visualizationPoints + Math.max(0, quizScore))
+  );
+
+  // Authoritative: Completion Percentage = (Number of Completed Videos + Number of Answered or Timed-Out Quiz Questions) / 12 × 100
+  const completionPercentage = Math.min(
+    100,
+    Math.round(((completedVideosCount + answeredOrTimedOutQuizCount) / 12) * 100)
+  );
+
+  const quizCompleted = answeredOrTimedOutQuizCount >= 10;
+  const isTopicCompleted = completedVideosCount === 2 && answeredOrTimedOutQuizCount === 10;
+
+  return {
+    videos: {
+      1: videos[1] || { videoId: 1, completed: false, pointsEarned: 0 },
+      2: videos[2] || { videoId: 2, completed: false, pointsEarned: 0 },
+    },
+    quizQuestions,
+    visualizationPoints,
+    quizScore,
+    overallTopicScore,
+    completionPercentage,
+    completedVideosCount,
+    answeredOrTimedOutQuizCount,
+    quizCorrectCount,
+    quizWrongCount,
+    quizUnansweredCount,
+    quizCompleted,
+    isTopicCompleted,
+  };
+};
+
+export const getInitialTopicData = (completedLabs: number[] = []): TopicScoringData => {
+  const isLab1 = completedLabs.includes(1);
+  const isLab2 = completedLabs.includes(2);
+  const videos: Record<number, TopicVideoProgress> = {
+    1: { videoId: 1, completed: isLab1, pointsEarned: isLab1 ? 25 : 0 },
+    2: { videoId: 2, completed: isLab2, pointsEarned: isLab2 ? 25 : 0 },
+  };
+  return calculateTopicScoring(videos, {});
+};
 
 export const INITIAL_ACHIEVEMENTS: Achievement[] = [
   {
@@ -119,6 +195,7 @@ export const getInitialProgress = (): UserProgress => {
     totalPops: 0,
     achievements: [],
     awardedEventKeys: [],
+    topicData: getInitialTopicData([]),
     history: [
       {
         title: 'Joined Data Structures & Types',
@@ -189,16 +266,105 @@ export const loadProgress = (): UserProgress => {
     data.completedTheoryChapters = Array.isArray(data.completedTheoryChapters) ? data.completedTheoryChapters : [];
     data.completedLabs = Array.isArray(data.completedLabs) ? data.completedLabs : [];
     data.completedOverviewSections = Array.isArray(data.completedOverviewSections) ? data.completedOverviewSections : [];
-    data.quizAnsweredCount = typeof data.quizAnsweredCount === 'number' ? data.quizAnsweredCount : (data.quizCompleted ? 10 : 0);
     data.achievements = Array.isArray(data.achievements) ? data.achievements : [];
     data.awardedEventKeys = Array.isArray(data.awardedEventKeys) ? data.awardedEventKeys : [];
     data.history = Array.isArray(data.history) ? data.history : [];
+
+    // Authoritative Topic Progress Normalization
+    const existingTopic = data.topicData;
+    const existingVideos = existingTopic?.videos || {
+      1: { videoId: 1, completed: data.completedLabs.includes(1), pointsEarned: data.completedLabs.includes(1) ? 25 : 0 },
+      2: { videoId: 2, completed: data.completedLabs.includes(2), pointsEarned: data.completedLabs.includes(2) ? 25 : 0 },
+    };
+    const existingQuiz = existingTopic?.quizQuestions || {};
+
+    data.topicData = calculateTopicScoring(existingVideos, existingQuiz);
+    data.quizCompleted = data.topicData.quizCompleted;
+    data.quizAnsweredCount = data.topicData.answeredOrTimedOutQuizCount;
 
     return data;
   } catch (e) {
     console.error('Failed to load user progress:', e);
     return getInitialProgress();
   }
+};
+
+export const recordVideoCompletion = (
+  current: UserProgress,
+  videoId: number
+): { updated: UserProgress; awarded: boolean } => {
+  const currentTopic = current.topicData || getInitialTopicData(current.completedLabs || []);
+  const existingVideo = currentTopic.videos[videoId];
+
+  // Idempotent: each video can award +25 pts only once per student
+  if (existingVideo && existingVideo.completed) {
+    return { updated: current, awarded: false };
+  }
+
+  const updatedVideos: Record<number, TopicVideoProgress> = {
+    ...currentTopic.videos,
+    [videoId]: {
+      videoId,
+      completed: true,
+      pointsEarned: 25,
+      completedAt: Date.now(),
+    },
+  };
+
+  const updatedLabs = Array.from(new Set([...(current.completedLabs || []), videoId]));
+  const recalculatedTopic = calculateTopicScoring(updatedVideos, currentTopic.quizQuestions);
+
+  const updated: UserProgress = {
+    ...current,
+    completedLabs: updatedLabs,
+    topicData: recalculatedTopic,
+  };
+
+  saveProgress(updated);
+  return { updated, awarded: true };
+};
+
+export const recordQuizQuestionOutcome = (
+  current: UserProgress,
+  outcome: QuizQuestionOutcome
+): { updated: UserProgress; recorded: boolean } => {
+  const currentTopic = current.topicData || getInitialTopicData(current.completedLabs || []);
+  const qId = outcome.questionId;
+
+  // Enforce one scored outcome per question per student per quiz attempt
+  if (currentTopic.quizQuestions[qId]) {
+    return { updated: current, recorded: false };
+  }
+
+  // Authoritative scoring validation:
+  // Correct answer: +5 points
+  // Wrong answer: -2 points
+  // Unanswered question after timeout: 0 points
+  const pointsAwarded =
+    outcome.status === 'correct' ? 5 : outcome.status === 'incorrect' ? -2 : 0;
+
+  const validatedOutcome: QuizQuestionOutcome = {
+    ...outcome,
+    pointsAwarded,
+    submittedAt: outcome.submittedAt || Date.now(),
+  };
+
+  const updatedQuestions: Record<number, QuizQuestionOutcome> = {
+    ...currentTopic.quizQuestions,
+    [qId]: validatedOutcome,
+  };
+
+  const recalculatedTopic = calculateTopicScoring(currentTopic.videos, updatedQuestions);
+
+  const updated: UserProgress = {
+    ...current,
+    quizCompleted: recalculatedTopic.quizCompleted,
+    quizAnsweredCount: recalculatedTopic.answeredOrTimedOutQuizCount,
+    topicData: recalculatedTopic,
+  };
+
+  saveProgress(updated);
+  return { updated, recorded: true };
 };
 
 export const saveProgress = (progress: UserProgress): void => {

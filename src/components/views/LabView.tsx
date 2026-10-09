@@ -1,20 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  Video,
   Play,
   CheckCircle2,
-  AlertCircle,
-  Upload,
-  RefreshCw,
-  Layers,
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  Sparkles,
+  Clock,
   Film,
-  Award,
+  Sparkles,
 } from 'lucide-react';
 import { UserProgress } from '../../types';
 import { soundEffects } from '../../services/sound';
+import { recordVideoCompletion, getInitialTopicData } from '../../services/storage';
 import { EducationalVideoPlayer } from '../lab/EducationalVideoPlayer';
 import { LESSONS_DATA, LessonData } from '../../data/labVideoData';
 
@@ -33,7 +27,14 @@ export const LabView: React.FC<LabViewProps> = ({
   progress,
   onUpdateProgress,
 }) => {
-  // Active selected lesson (1 for DATA STRUCTURE, 2 for STACK OPERATIONS)
+  // Authoritative topic scoring data
+  const topicData = progress.topicData || getInitialTopicData(progress.completedLabs || []);
+  const isLesson1Completed = Boolean(topicData.videos[1]?.completed);
+  const isLesson2Completed = Boolean(topicData.videos[2]?.completed);
+  const lesson1Points = topicData.videos[1]?.pointsEarned || 0;
+  const lesson2Points = topicData.videos[2]?.pointsEarned || 0;
+
+  // Active selected lesson (1 for DATA STRUCTURE, 2 for LINEAR & NON-LINEAR)
   const [selectedLessonId, setSelectedLessonId] = useState<number>(1);
   const [autoPlayTrigger, setAutoPlayTrigger] = useState<number>(0);
 
@@ -75,14 +76,6 @@ export const LabView: React.FC<LabViewProps> = ({
       });
       setSelectedLessonId(1);
       soundEffects.playSuccess();
-
-      if (!progress.completedLabs?.includes(1)) {
-        onUpdateProgress((prev) => ({
-          ...prev,
-          completedLabs: [...(prev.completedLabs || []), 1],
-          xp: prev.xp + 50,
-        }));
-      }
     }
   };
 
@@ -99,14 +92,6 @@ export const LabView: React.FC<LabViewProps> = ({
       });
       setSelectedLessonId(2);
       soundEffects.playSuccess();
-
-      if (!progress.completedLabs?.includes(2)) {
-        onUpdateProgress((prev) => ({
-          ...prev,
-          completedLabs: [...(prev.completedLabs || []), 2],
-          xp: prev.xp + 50,
-        }));
-      }
     }
   };
 
@@ -119,14 +104,13 @@ export const LabView: React.FC<LabViewProps> = ({
     if (playerContainerRef.current) {
       playerContainerRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+  };
 
-    // Award lab completion upon watching
-    if (!progress.completedLabs?.includes(lessonId)) {
-      onUpdateProgress((prev) => ({
-        ...prev,
-        completedLabs: [...(prev.completedLabs || []), lessonId],
-        xp: prev.xp + 50,
-      }));
+  const handleLessonComplete = (completedId: number) => {
+    const { updated, awarded } = recordVideoCompletion(progress, completedId);
+    if (awarded) {
+      soundEffects.playSuccess();
+      onUpdateProgress(updated);
     }
   };
 
@@ -136,9 +120,6 @@ export const LabView: React.FC<LabViewProps> = ({
 
   const currentCustomUrl = selectedLessonId === 1 ? video1.url : video2.url;
   const currentCustomName = selectedLessonId === 1 ? video1.name : video2.name;
-
-  const isLesson1Completed = progress.completedLabs?.includes(1);
-  const isLesson2Completed = progress.completedLabs?.includes(2);
 
   return (
     <div className="space-y-8 pb-16 max-w-6xl mx-auto">
@@ -161,10 +142,20 @@ export const LabView: React.FC<LabViewProps> = ({
       />
 
       {/* ─── VISUALIZE SECTION HEADING ─── */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
-          VISUALIZE
-        </h1>
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
+              <Sparkles className="w-5 h-5" />
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
+              VISUALIZE
+            </h1>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1">
+            Watch both interactive lesson videos in full to earn +25 points each (max 50 points).
+          </p>
+        </div>
       </div>
 
       {/* ─── TWO LESSON CARDS GRID ─── */}
@@ -179,8 +170,8 @@ export const LabView: React.FC<LabViewProps> = ({
           }`}
         >
           <div className="space-y-4">
-            {/* Top Row: Lesson label + Video Icon Container */}
-            <div className="flex items-center justify-between">
+            {/* Top Row: Lesson label + Available Points Prominent Display */}
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 uppercase tracking-wider border border-slate-200/80 dark:border-slate-700/80">
                   LESSON 01
@@ -190,10 +181,41 @@ export const LabView: React.FC<LabViewProps> = ({
                 </span>
               </div>
 
-              <div className="flex items-center gap-1.5">
+              {/* Prominent Available Points Badge */}
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full text-xs font-mono font-black bg-indigo-600 text-white shadow-xs">
+                  +25 pts
+                </span>
                 <div className="w-9 h-9 rounded-full bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900/50 shadow-2xs">
                   <Film className="w-4 h-4 stroke-[2.2]" />
                 </div>
+              </div>
+            </div>
+
+            {/* Completion Status & Earned Points Display */}
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Status:</span>
+                {isLesson1Completed ? (
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4" /> Completed
+                  </span>
+                ) : (
+                  <span className="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" /> Incomplete
+                  </span>
+                )}
+              </div>
+
+              <div className="text-right">
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium mr-1.5">Earned:</span>
+                <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md ${
+                  isLesson1Completed
+                    ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                    : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                }`}>
+                  {lesson1Points}/25 pts
+                </span>
               </div>
             </div>
 
@@ -249,8 +271,8 @@ export const LabView: React.FC<LabViewProps> = ({
           }`}
         >
           <div className="space-y-4">
-            {/* Top Row: Lesson label + Video Icon Container */}
-            <div className="flex items-center justify-between">
+            {/* Top Row: Lesson label + Available Points Prominent Display */}
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 uppercase tracking-wider border border-slate-200/80 dark:border-slate-700/80">
                   LESSON 02
@@ -260,10 +282,41 @@ export const LabView: React.FC<LabViewProps> = ({
                 </span>
               </div>
 
-              <div className="flex items-center gap-1.5">
+              {/* Prominent Available Points Badge */}
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full text-xs font-mono font-black bg-indigo-600 text-white shadow-xs">
+                  +25 pts
+                </span>
                 <div className="w-9 h-9 rounded-full bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900/50 shadow-2xs">
                   <Film className="w-4 h-4 stroke-[2.2]" />
                 </div>
+              </div>
+            </div>
+
+            {/* Completion Status & Earned Points Display */}
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Status:</span>
+                {isLesson2Completed ? (
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4" /> Completed
+                  </span>
+                ) : (
+                  <span className="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" /> Incomplete
+                  </span>
+                )}
+              </div>
+
+              <div className="text-right">
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium mr-1.5">Earned:</span>
+                <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md ${
+                  isLesson2Completed
+                    ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                    : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                }`}>
+                  {lesson2Points}/25 pts
+                </span>
               </div>
             </div>
 
@@ -325,15 +378,7 @@ export const LabView: React.FC<LabViewProps> = ({
               fileInputRef2.current?.click();
             }
           }}
-          onLessonComplete={(completedId) => {
-            if (!progress.completedLabs?.includes(completedId)) {
-              onUpdateProgress((prev) => ({
-                ...prev,
-                completedLabs: [...(prev.completedLabs || []), completedId],
-                xp: prev.xp + 50,
-              }));
-            }
-          }}
+          onLessonComplete={handleLessonComplete}
         />
       </div>
     </div>

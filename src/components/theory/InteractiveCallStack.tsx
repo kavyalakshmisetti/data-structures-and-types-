@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Play, RotateCcw, Cpu } from 'lucide-react';
+import { Play, Cpu } from 'lucide-react';
 import { soundEffects } from '../../services/sound';
 
 export const InteractiveCallStack: React.FC = () => {
@@ -19,22 +19,21 @@ export const InteractiveCallStack: React.FC = () => {
   const [frames, setFrames] = useState<string[]>(['main()']);
 
   const handleNext = () => {
-    if (stepIndex >= STEPS.length - 1) return;
+    soundEffects.playClick();
+    if (stepIndex >= STEPS.length - 1) {
+      setStepIndex(0);
+      setFrames(['main()']);
+      return;
+    }
     const nextIdx = stepIndex + 1;
     const nextStep = STEPS[nextIdx];
 
-    soundEffects.playClick();
     if (nextStep.action === 'push') {
       setFrames((prev) => [...prev, nextStep.frame]);
     } else {
       setFrames((prev) => prev.slice(0, -1));
     }
     setStepIndex(nextIdx);
-  };
-
-  const handleReset = () => {
-    setStepIndex(0);
-    setFrames(['main()']);
   };
 
   return (
@@ -46,12 +45,6 @@ export const InteractiveCallStack: React.FC = () => {
             Runtime CPU Call Stack Tracer (factorial(3))
           </span>
         </div>
-        <button
-          onClick={handleReset}
-          className="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-1 cursor-pointer"
-        >
-          <RotateCcw className="w-3 h-3" /> Reset
-        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">

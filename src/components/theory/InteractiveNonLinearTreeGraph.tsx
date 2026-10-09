@@ -8,7 +8,6 @@ import {
   Layers,
   ArrowRight,
   Plus,
-  RefreshCw,
 } from 'lucide-react';
 import { soundEffects } from '../../services/sound';
 

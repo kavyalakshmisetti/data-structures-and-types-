@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Play, RotateCcw, CheckCircle2, XCircle, ChevronRight } from 'lucide-react';
+import { Play, CheckCircle2, XCircle, ChevronRight } from 'lucide-react';
 import { soundEffects } from '../../services/sound';
 
 export const InteractiveBrackets: React.FC = () => {
@@ -27,7 +27,13 @@ export const InteractiveBrackets: React.FC = () => {
   };
 
   const handleNextStep = () => {
-    if (status === 'valid' || status === 'invalid') return;
+    if (status === 'valid' || status === 'invalid') {
+      setCurrentStep(0);
+      setCharStack([]);
+      setStatus('idle');
+      setStepMessage('Click "Next Step" to trace bracket validation.');
+      return;
+    }
 
     if (currentStep >= expr.length) {
       // Finished scanning string
@@ -76,13 +82,6 @@ export const InteractiveBrackets: React.FC = () => {
         setStepMessage(`❌ Mismatch Error! Closer '${char}' does NOT match top opener '${topChar}'.`);
       }
     }
-  };
-
-  const handleReset = () => {
-    setCurrentStep(0);
-    setCharStack([]);
-    setStatus('idle');
-    setStepMessage('Click "Next Step" to trace bracket validation.');
   };
 
   return (
@@ -170,16 +169,9 @@ export const InteractiveBrackets: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={handleNextStep}
-              disabled={status === 'valid' || status === 'invalid'}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
-              <Play className="w-3.5 h-3.5" /> Next Scan Step
-            </button>
-            <button
-              onClick={handleReset}
-              className="px-3.5 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" /> Reset
+              <Play className="w-3.5 h-3.5" /> {status === 'valid' || status === 'invalid' ? 'Restart Scan' : 'Next Scan Step'}
             </button>
           </div>
 

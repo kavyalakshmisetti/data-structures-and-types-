@@ -45,6 +45,38 @@ export interface Achievement {
   category: 'beginner' | 'mastery' | 'speed' | 'quiz';
 }
 
+export interface QuizQuestionOutcome {
+  questionId: number;
+  status: 'correct' | 'incorrect' | 'unanswered';
+  selectedOption: string | null;
+  draggedOrder?: string[];
+  pointsAwarded: number; // +5 for correct, -2 for incorrect, 0 for timeout
+  submittedAt: number;
+}
+
+export interface TopicVideoProgress {
+  videoId: number;
+  completed: boolean;
+  pointsEarned: number; // 0 or 25
+  completedAt?: number;
+}
+
+export interface TopicScoringData {
+  videos: Record<number, TopicVideoProgress>; // 1 and 2
+  quizQuestions: Record<number, QuizQuestionOutcome>; // 1 to 10
+  visualizationPoints: number; // 0 to 50
+  quizScore: number; // raw sum including deductions (-20 to 50)
+  overallTopicScore: number; // visualizationPoints + max(0, quizScore), 0 to 100
+  completionPercentage: number; // 0 to 100 based on 12 activities
+  completedVideosCount: number; // 0, 1, or 2
+  answeredOrTimedOutQuizCount: number; // 0 to 10
+  quizCorrectCount: number;
+  quizWrongCount: number;
+  quizUnansweredCount: number;
+  quizCompleted: boolean;
+  isTopicCompleted: boolean;
+}
+
 export interface UserProgress {
   xp: number;
   level: number;
@@ -62,6 +94,7 @@ export interface UserProgress {
   totalPops: number;
   achievements: string[]; // achievement ids
   awardedEventKeys: string[]; // prevents duplicate XP rewards
+  topicData?: TopicScoringData; // authoritative scoring for Data Structures and Types
   history: {
     title: string;
     description: string;

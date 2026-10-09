@@ -648,8 +648,6 @@ export const GameView: React.FC<GameViewProps> = ({
           setViewMode('lab');
         }}
         onSelectLevel={handleSelectLevel}
-        onResetChallenge={handleResetChallenge}
-        onResetGame={handleResetGame}
         onBackToHub={() => {
           soundEffects.playClick();
           setViewMode('hub');

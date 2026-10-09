@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Minus, Eye, ListFilter, RotateCcw, Check, Sparkles, AlertCircle } from 'lucide-react';
+import { Plus, Minus, Eye, ListFilter, Check, Sparkles, AlertCircle } from 'lucide-react';
 import { soundEffects } from '../../services/sound';
 
 export const InteractiveMiniOperationsLab: React.FC = () => {
   const [items, setItems] = useState<number[]>([10, 20, 40]);
   const [highlightedIndices, setHighlightedIndices] = useState<number[]>([]);
   const [peekHighlight, setPeekHighlight] = useState<boolean>(false);
-  const [actionLog, setActionLog] = useState<{ title: string; message: string; type: 'push' | 'pop' | 'peek' | 'display' | 'reset' }>({
+  const [actionLog, setActionLog] = useState<{ title: string; message: string; type: 'push' | 'pop' | 'peek' | 'display' | 'info' }>({
     title: 'Ready for Operations',
-    message: 'Try clicking [PUSH], [POP], [PEEK], [DISPLAY], or [RESET] below.',
-    type: 'reset',
+    message: 'Try clicking [PUSH], [POP], [PEEK], or [DISPLAY] below.',
+    type: 'info',
   });
 
   const capacity = 5;
@@ -104,18 +104,6 @@ export const InteractiveMiniOperationsLab: React.FC = () => {
     });
   };
 
-  const handleReset = () => {
-    soundEffects.playClick();
-    setItems([10, 20, 40]);
-    setHighlightedIndices([]);
-    setPeekHighlight(false);
-    setActionLog({
-      title: 'RESET',
-      message: 'Stack reset to initial elements: [10, 20, 40].',
-      type: 'reset',
-    });
-  };
-
   return (
     <div className="bg-slate-50 dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 space-y-5">
       {/* Header Bar */}
@@ -156,12 +144,6 @@ export const InteractiveMiniOperationsLab: React.FC = () => {
             className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer"
           >
             <ListFilter className="w-3.5 h-3.5" /> DISPLAY
-          </button>
-          <button
-            onClick={handleReset}
-            className="px-3 py-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
-          >
-            <RotateCcw className="w-3.5 h-3.5" /> RESET
           </button>
         </div>
       </div>

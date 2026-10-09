@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Play, RotateCcw, ArrowRight, ArrowDown, Check, Sparkles } from 'lucide-react';
+import { Play, ArrowRight, ArrowDown, Check, Sparkles } from 'lucide-react';
 import { soundEffects } from '../../services/sound';
 
 export const InteractiveLifoDemo: React.FC = () => {
@@ -88,14 +88,8 @@ export const InteractiveLifoDemo: React.FC = () => {
       if (nextStep === 4) soundEffects.playSuccess();
     } else {
       setStep(0);
-      setHistoryLog(['Sequence reset to start.']);
+      setHistoryLog(['Sequence restarted from initial state.']);
     }
-  };
-
-  const handleReset = () => {
-    soundEffects.playClick();
-    setStep(0);
-    setHistoryLog(['Reset to Step 0.']);
   };
 
   return (
@@ -117,13 +111,6 @@ export const InteractiveLifoDemo: React.FC = () => {
           >
             <Play className="w-3.5 h-3.5 fill-current" />
             <span>{step === stepsData.length - 1 ? 'Restart Trace' : `Next Step (${step + 1}/${stepsData.length})`}</span>
-          </button>
-          <button
-            onClick={handleReset}
-            className="px-3 py-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Reset</span>
           </button>
         </div>
       </div>

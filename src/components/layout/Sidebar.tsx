@@ -78,39 +78,27 @@ export const Sidebar = forwardRef<HTMLElement, SidebarProps>(({
   ];
 
   const getPerformanceRepresentation = (tabId: TabType): string => {
+    const topicData = progress.topicData;
+    const completedChapters = Math.min(8, (progress.completedTheoryChapters || []).length);
+    const completedVideos = topicData?.completedVideosCount ?? 0;
+    const completedQuiz = topicData?.answeredOrTimedOutQuizCount ?? 0;
+
     switch (tabId) {
       case 'home': {
-        const completedModules =
-          (progress.completedTheoryChapters?.length || 0) +
-          (progress.completedLabs?.length || 0) +
-          (progress.quizCompleted ? 1 : 0);
-        return `${Math.min(11, Math.max(0, completedModules))}/11`;
+        const totalCompleted = completedChapters + completedVideos + completedQuiz;
+        return `${totalCompleted}/20`;
       }
       case 'theory': {
-        const completed = (progress.completedTheoryChapters || []).length;
-        return `${Math.min(8, completed)}/8`;
+        return `${completedChapters}/8`;
       }
       case 'lab': {
-        const completed = (progress.completedLabs || []).length;
-        return `${Math.min(2, completed)}/2`;
+        return `${completedVideos}/2`;
       }
       case 'quiz': {
-        if (progress.quizCompleted) {
-          return '10/10';
-        }
-        const answered = Math.min(
-          10,
-          Math.max(0, progress.quizAnsweredCount || progress.quizTotalQuestionsAnswered || 0)
-        );
-        return `${answered}/10`;
+        return `${completedQuiz}/10`;
       }
       case 'progress': {
-        const completedModules =
-          (progress.completedTheoryChapters?.length || 0) +
-          (progress.completedLabs?.length || 0) +
-          (progress.quizCompleted ? 1 : 0);
-        const overallPercent = Math.min(100, Math.round((completedModules / 11) * 100));
-        return `${overallPercent}%`;
+        return `${topicData?.completionPercentage ?? 0}%`;
       }
       default:
         return '';

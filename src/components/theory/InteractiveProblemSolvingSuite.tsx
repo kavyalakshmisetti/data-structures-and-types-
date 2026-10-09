@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Check, X, ArrowRight, Play, RotateCcw, Sparkles, Terminal } from 'lucide-react';
+import { Check, X, ArrowRight, Play, Sparkles, Terminal } from 'lucide-react';
 import { soundEffects } from '../../services/sound';
 
 export const InteractiveProblemSolvingSuite: React.FC = () => {
@@ -27,13 +27,9 @@ export const InteractiveProblemSolvingSuite: React.FC = () => {
   const handleBracketNext = () => {
     soundEffects.playClick();
     if (bracketStep >= bracketExpr.length) {
-      if (bracketStack.length === 0) {
-        setBracketStatus('✅ Valid & Balanced! Stack is empty at termination.');
-        soundEffects.playSuccess();
-      } else {
-        setBracketStatus('❌ Invalid: Unclosed opening brackets remain in stack.');
-        soundEffects.playError();
-      }
+      setBracketStack([]);
+      setBracketStep(0);
+      setBracketStatus('Ready. Click "Step Through" to validate.');
       return;
     }
 
@@ -46,6 +42,7 @@ export const InteractiveProblemSolvingSuite: React.FC = () => {
       if (bracketStack.length === 0) {
         setBracketStatus(`❌ Invalid: Closing bracket '${char}' with empty stack.`);
         soundEffects.playError();
+        setBracketStep((prev) => prev + 1);
         return;
       }
       const top = bracketStack[bracketStack.length - 1];
@@ -55,17 +52,18 @@ export const InteractiveProblemSolvingSuite: React.FC = () => {
       } else {
         setBracketStatus(`❌ Mismatch: Found '${char}' but TOP was '${top}'.`);
         soundEffects.playError();
+        setBracketStep((prev) => prev + 1);
         return;
       }
     }
-    setBracketStep((prev) => prev + 1);
-  };
-
-  const handleBracketReset = () => {
-    soundEffects.playClick();
-    setBracketStack([]);
-    setBracketStep(0);
-    setBracketStatus('Ready. Click "Step Through" to validate.');
+    const nextStep = bracketStep + 1;
+    setBracketStep(nextStep);
+    if (nextStep >= bracketExpr.length) {
+      if (bracketStack.length === 0) {
+        setBracketStatus('✅ Valid & Balanced! Stack is empty at termination.');
+        soundEffects.playSuccess();
+      }
+    }
   };
 
   // Handle CallStack
@@ -152,13 +150,7 @@ export const InteractiveProblemSolvingSuite: React.FC = () => {
                 onClick={handleBracketNext}
                 className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer"
               >
-                <Play className="w-3.5 h-3.5 fill-current" /> Step Through
-              </button>
-              <button
-                onClick={handleBracketReset}
-                className="p-1.5 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-              >
-                <RotateCcw className="w-4 h-4" />
+                <Play className="w-3.5 h-3.5 fill-current" /> {bracketStep >= bracketExpr.length ? 'Restart Step Through' : 'Step Through'}
               </button>
             </div>
           </div>

@@ -3,7 +3,6 @@ import {
   Menu,
   Volume2,
   VolumeX,
-  RotateCcw,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -17,16 +16,14 @@ interface HeaderProps {
   progress: UserProgress;
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
-  onResetProgress: () => void;
   onSelectTab: (tab: TabType) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   currentTab: _currentTab,
-  progress: _progress,
+  progress,
   isSidebarOpen,
   onToggleSidebar,
-  onResetProgress,
   onSelectTab,
 }) => {
   const [isMuted, setIsMuted] = useState<boolean>(soundEffects.getMuted());
@@ -110,19 +107,6 @@ export const Header: React.FC<HeaderProps> = ({
           ) : (
             <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 dark:text-indigo-400 stroke-[2.2]" />
           )}
-        </button>
-
-        {/* Reset Progress: [ ↺ ] */}
-        <button
-          onClick={() => {
-            soundEffects.playClick();
-            onResetProgress();
-          }}
-          title="Total Reset"
-          aria-label="Total Reset"
-          className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-all flex items-center justify-center cursor-pointer shadow-2xs active:scale-95 shrink-0"
-        >
-          <RotateCcw className="w-4 h-4 text-slate-600 dark:text-slate-300 stroke-[2.2]" />
         </button>
       </div>
     </header>

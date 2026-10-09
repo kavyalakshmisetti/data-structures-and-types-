@@ -53,11 +53,6 @@ export const InteractiveAlgorithmFlowchart: React.FC = () => {
     }
   };
 
-  const handleReset = () => {
-    soundEffects.playClick();
-    setActiveStep(0);
-  };
-
   const handleSwitchAlgo = (algo: 'push' | 'pop') => {
     soundEffects.playClick();
     setActiveAlgorithm(algo);
@@ -148,12 +143,6 @@ export const InteractiveAlgorithmFlowchart: React.FC = () => {
           >
             <Play className="w-3.5 h-3.5 fill-current" />
             <span>{activeStep === currentSteps.length - 1 ? 'Restart Path' : `Next Step (${activeStep + 1}/${currentSteps.length})`}</span>
-          </button>
-          <button
-            onClick={handleReset}
-            className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-semibold hover:bg-slate-200"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
