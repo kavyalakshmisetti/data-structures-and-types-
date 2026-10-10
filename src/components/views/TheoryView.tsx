@@ -5,7 +5,6 @@ import {
   ArrowRight,
   CheckCircle2,
   Circle,
-  Clock,
   Layers,
   Sparkles,
   Zap,
@@ -333,15 +332,11 @@ export const TheoryView: React.FC<TheoryViewProps> = ({
             ===================================================================== */}
         <main className="lg:col-span-8 space-y-6">
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-8 shadow-xs space-y-7">
-            {/* 1. Header Bar: Chapter Label & Read Time */}
+            {/* 1. Header Bar: Chapter Label */}
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <span className="font-mono text-xs font-extrabold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/80 px-3 py-1 rounded-lg border border-indigo-100 dark:border-indigo-900/60">
                 CHAPTER {currentChapter.chapterNumber} // {currentChapter.categoryLabel || 'FUNDAMENTALS'}
               </span>
-              <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 font-mono">
-                <Clock className="w-3.5 h-3.5" />
-                <span>{currentChapter.readTime}</span>
-              </div>
             </div>
 
             {/* 2. Chapter Title & Short Subtitle */}

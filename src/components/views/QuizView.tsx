@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import {
-  HelpCircle,
   Award,
   CheckCircle2,
   XCircle,
   Clock,
-  Timer,
   ChevronLeft,
   ChevronRight,
   ChevronUp,
@@ -49,6 +47,11 @@ export const QuizView: React.FC<QuizViewProps> = ({
   const [drafts, setDrafts] = useState<Record<number, QuestionAnswerDraft>>({});
   const [reviewFilter, setReviewFilter] = useState<'all' | 'correct' | 'incorrect' | 'unanswered'>('all');
 
+  // Quiz started state (activates the 20s countdown upon clicking Start Quiz or answering)
+  const [isQuizStarted, setIsQuizStarted] = useState<boolean>(
+    () => Object.keys(recordedQuestions).length > 0
+  );
+
   // Per-question 20-second timer state
   const [timeLeft, setTimeLeft] = useState<number>(20);
   const [isTimeExpiring, setIsTimeExpiring] = useState<boolean>(false);
@@ -59,6 +62,15 @@ export const QuizView: React.FC<QuizViewProps> = ({
   const currentQ: QuizQuestion = QUIZ_QUESTIONS[currentIdx];
   const currentOutcome: QuizQuestionOutcome | undefined = recordedQuestions[currentQ.id];
   const isQuestionLocked = Boolean(currentOutcome);
+
+  // Start / restart the 20-second quiz countdown timer
+  const handleStartQuiz = () => {
+    soundEffects.playClick();
+    setIsQuizStarted(true);
+    setTimeLeft(20);
+    setIsTimeExpiring(false);
+    questionStartTimeRef.current = Date.now();
+  };
 
   // Initialize drag order or option draft for current question
   useEffect(() => {
@@ -93,9 +105,13 @@ export const QuizView: React.FC<QuizViewProps> = ({
     }
     isAutoAdvancingRef.current = false;
 
-    // If question is already answered or timed out, do not start countdown
-    if (isQuestionLocked || isAllQuestionsFinished) {
-      setTimeLeft(0);
+    // If quiz is not started yet or question is already answered or timed out, do not run countdown
+    if (!isQuizStarted || isQuestionLocked || isAllQuestionsFinished) {
+      if (!isQuizStarted) {
+        setTimeLeft(20);
+      } else {
+        setTimeLeft(0);
+      }
       setIsTimeExpiring(false);
       return;
     }
@@ -129,7 +145,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
         timerRef.current = null;
       }
     };
-  }, [currentIdx, isQuestionLocked, isAllQuestionsFinished]);
+  }, [currentIdx, isQuizStarted, isQuestionLocked, isAllQuestionsFinished]);
 
   // Handle automatic timeout when timer expires (0 points awarded)
   const handleQuestionTimeout = () => {
@@ -160,6 +176,10 @@ export const QuizView: React.FC<QuizViewProps> = ({
 
   const handleSelectOption = (opt: string) => {
     if (isQuestionLocked) return;
+    if (!isQuizStarted) {
+      setIsQuizStarted(true);
+      questionStartTimeRef.current = Date.now();
+    }
     soundEffects.playClick();
     setDrafts((prev) => ({
       ...prev,
@@ -267,70 +287,30 @@ export const QuizView: React.FC<QuizViewProps> = ({
 
   return (
     <div className="space-y-6 pb-12 max-w-4xl mx-auto">
-      {/* ─── OFFICIAL SCORING RULES AT THE TOP OF THE QUIZ PAGE ─── */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-          <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
-              <HelpCircle className="w-5 h-5" />
-            </span>
-            <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
-              DATA STRUCTURES AND TYPES QUIZ ASSESSMENT
-            </h1>
-          </div>
-          <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 self-start sm:self-auto">
-            10 Questions Total
-          </span>
-        </div>
-
-        {/* 5 Distinct Scoring Rule Pills */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-          <div className="p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/80 text-left">
-            <span className="text-[10px] uppercase font-mono font-bold text-emerald-800 dark:text-emerald-400 block">
-              Correct Answer
-            </span>
-            <span className="text-base font-mono font-black text-emerald-600 dark:text-emerald-400">
-              +5 pts
-            </span>
+      {/* ─── SCORING AND START TIMER BOX (ONE COMPACT HORIZONTAL BOX - ONLY SHOWN DURING QUIZ) ─── */}
+      {!isAllQuestionsFinished && (
+        <div className="bg-[#fef9c3] dark:bg-amber-950/40 border border-[#fde047] dark:border-amber-700/70 rounded-2xl px-5 py-3.5 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 text-sm">
+          {/* Left side: Scoring rules in clear, readable dark brown font */}
+          <div className="flex items-center gap-4 sm:gap-6 font-semibold text-[#78350f] dark:text-amber-200 text-xs sm:text-sm">
+            <span>Correct answer: +5 points</span>
+            <span>Incorrect answer: -2 points</span>
           </div>
 
-          <div className="p-3 rounded-2xl bg-rose-50/80 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/80 text-left">
-            <span className="text-[10px] uppercase font-mono font-bold text-rose-800 dark:text-rose-400 block">
-              Wrong Answer
+          {/* Right side: Time : 20s and blue Start Quiz Button */}
+          <div className="flex items-center gap-3">
+            <span className="font-semibold text-[#78350f] dark:text-amber-200 font-mono text-xs sm:text-sm">
+              Time: {isQuizStarted && !isQuestionLocked ? `${timeLeft}s` : '20s'}
             </span>
-            <span className="text-base font-mono font-black text-rose-600 dark:text-rose-400">
-              −2 pts
-            </span>
-          </div>
-
-          <div className="p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/80 text-left">
-            <span className="text-[10px] uppercase font-mono font-bold text-amber-800 dark:text-amber-400 block">
-              Time limit
-            </span>
-            <span className="text-sm sm:text-base font-mono font-black text-amber-600 dark:text-amber-400">
-              20 seconds per question
-            </span>
-          </div>
-
-          <div className="p-3 rounded-2xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-left">
-            <span className="text-[10px] uppercase font-mono font-bold text-slate-700 dark:text-slate-300 block">
-              Unanswered after timeout
-            </span>
-            <span className="text-base font-mono font-black text-slate-600 dark:text-slate-400">
-              0 pts
-            </span>
-          </div>
-
-          <div className="p-3 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-800/80 text-left col-span-2 sm:col-span-1">
-            <span className="text-[10px] uppercase font-mono font-bold text-indigo-800 dark:text-indigo-400 block">
-              Maximum quiz score before deductions
-            </span>
-            <span className="text-base font-mono font-black text-indigo-600 dark:text-indigo-400">
-              50 pts
-            </span>
+            <button
+              type="button"
+              onClick={handleStartQuiz}
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs sm:text-sm shadow-xs transition-colors cursor-pointer"
+            >
+              Start Quiz
+            </button>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ─── LIVE STEPPER & TIMER ROW (When quiz in progress or viewing questions) ─── */}
       {!isAllQuestionsFinished && (
@@ -389,7 +369,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
       {/* ─── ACTIVE QUESTION CARD (Shown while quiz has uncompleted questions or user reviews) ─── */}
       {!isAllQuestionsFinished ? (
         <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-6">
-          {/* Header Row: Category Badge + 20-Second Countdown Timer + Question Outcome */}
+          {/* Header Row: Category Badge + Question Outcome */}
           <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2">
               <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/80 px-2.5 py-1 rounded-full border border-indigo-200 dark:border-indigo-800 font-mono">
@@ -400,39 +380,26 @@ export const QuizView: React.FC<QuizViewProps> = ({
               </span>
             </div>
 
-            {/* Per-Question 20-Second Countdown Timer (or Locked Outcome) */}
-            <div className="flex items-center gap-2">
-              {!isQuestionLocked ? (
-                <div
-                  className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full font-mono text-xs font-bold border transition-colors ${
-                    isTimeExpiring
-                      ? 'bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400 border-rose-300 dark:border-rose-800 animate-pulse'
-                      : 'bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800'
-                  }`}
-                >
-                  <Timer className="w-3.5 h-3.5" />
-                  <span>{timeLeft}s remaining</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  {currentOutcome?.status === 'correct' && (
-                    <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> +5 pts (Correct)
-                    </span>
-                  )}
-                  {currentOutcome?.status === 'incorrect' && (
-                    <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-800 flex items-center gap-1">
-                      <XCircle className="w-3.5 h-3.5" /> −2 pts (Incorrect)
-                    </span>
-                  )}
-                  {currentOutcome?.status === 'unanswered' && (
-                    <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-800 flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" /> 0 pts (Timed Out)
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
+            {/* Question Outcome Badge (if already completed) */}
+            {isQuestionLocked && (
+              <div className="flex items-center gap-1.5">
+                {currentOutcome?.status === 'correct' && (
+                  <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> +5 pts (Correct)
+                  </span>
+                )}
+                {currentOutcome?.status === 'incorrect' && (
+                  <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-800 flex items-center gap-1">
+                    <XCircle className="w-3.5 h-3.5" /> −2 pts (Incorrect)
+                  </span>
+                )}
+                {currentOutcome?.status === 'unanswered' && (
+                  <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-800 flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" /> 0 pts (Timed Out)
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Question Text */}

@@ -122,7 +122,7 @@ export const LabView: React.FC<LabViewProps> = ({
   const currentCustomName = selectedLessonId === 1 ? video1.name : video2.name;
 
   return (
-    <div className="space-y-8 pb-16 max-w-6xl mx-auto">
+    <div className="space-y-8 pb-16 w-full max-w-[96vw] lg:max-w-[1400px] xl:max-w-[1520px] mx-auto px-2 sm:px-4">
       {/* Hidden File Inputs for Custom Video Uploads */}
       <input
         type="file"
