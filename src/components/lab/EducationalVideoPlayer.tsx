@@ -114,7 +114,7 @@ export const EducationalVideoPlayer: React.FC<EducationalVideoPlayerProps> = ({
     setIsPlaying(false);
     setDuration(activeLesson.duration || 57);
     watchedSecondsSetRef.current = new Set();
-    setRenderMode('video');
+    setRenderMode('studio');
 
     if (audioRef.current) {
       audioRef.current.pause();
@@ -699,18 +699,57 @@ export const EducationalVideoPlayer: React.FC<EducationalVideoPlayerProps> = ({
   const videoTitle = customVideoName || activeLesson.title;
 
   return (
-    <div
-      ref={containerRef}
-      tabIndex={0}
-      onMouseMove={handleUserActivity}
-      onTouchStart={handleUserActivity}
-      onClick={handleUserActivity}
-      className={`relative w-full overflow-hidden bg-slate-950 select-none font-sans transition-all duration-300 group border border-slate-800 shadow-2xl focus:outline-none ${
-        isFullscreen
-          ? 'fixed inset-0 z-[9999] w-screen h-screen flex flex-col items-center justify-between p-0 rounded-none bg-black'
-          : 'w-full max-w-6xl aspect-[16/9] min-h-[480px] max-h-[820px] mx-auto rounded-3xl flex flex-col justify-between shadow-[0_20px_50px_rgba(0,0,0,0.6)] ring-1 ring-slate-800/80'
-      }`}
-    >
+    <div className="w-full">
+      {/* ─── LAPTOP-STYLE 16:9 CONTAINER ─── */}
+      <div
+        className={
+          isFullscreen
+            ? 'fixed inset-0 z-[9999] w-screen h-screen bg-black flex items-center justify-center p-0'
+            : 'w-full max-w-6xl mx-auto'
+        }
+      >
+        {!isFullscreen && (
+          <div className="bg-slate-900 dark:bg-slate-950 px-4 pt-3 pb-2 rounded-t-3xl border-t border-x border-slate-700/80 shadow-2xl flex items-center justify-between relative">
+            {/* Window dot controls */}
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
+            </div>
+
+            {/* Centered Webcam and Active Sensor LED */}
+            <div className="flex items-center gap-2">
+              <div className="w-3.5 h-3.5 rounded-full bg-slate-950 border border-slate-700 flex items-center justify-center shadow-inner">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/80" />
+              </div>
+              <div
+                className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                  isPlaying ? 'bg-emerald-400 animate-pulse' : 'bg-slate-700'
+                }`}
+                title={isPlaying ? 'Camera / Display active' : 'Display idle'}
+              />
+            </div>
+
+            <div className="text-[10px] font-mono text-slate-400 font-semibold tracking-wider flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+              <span>16:9 HD LAPTOP DISPLAY</span>
+            </div>
+          </div>
+        )}
+
+        {/* 16:9 Screen Display Window */}
+        <div
+          ref={containerRef}
+          tabIndex={0}
+          onMouseMove={handleUserActivity}
+          onTouchStart={handleUserActivity}
+          onClick={handleUserActivity}
+          className={`relative w-full aspect-video overflow-hidden bg-slate-950 select-none font-sans transition-all duration-300 group focus:outline-none flex flex-col justify-between ${
+            isFullscreen
+              ? 'fixed inset-0 z-[9999] w-screen h-screen max-w-none max-h-none rounded-none border-none shadow-none'
+              : 'border-x border-slate-800 shadow-[0_25px_60px_rgba(0,0,0,0.7)]'
+          }`}
+        >
       {/* ─── HIDDEN REAL AUDIO ELEMENT: STUDIO NARRATION ENGINE ─── */}
       <audio
         ref={audioRef}
@@ -1100,6 +1139,20 @@ export const EducationalVideoPlayer: React.FC<EducationalVideoPlayerProps> = ({
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+        {!isFullscreen && (
+          <div className="relative select-none pointer-events-none">
+            {/* Center Display Hinge */}
+            <div className="h-2 sm:h-2.5 w-3/4 mx-auto bg-slate-800 dark:bg-slate-900 border-x border-slate-700/70" />
+            {/* Metallic Keyboard Deck Base with Notch */}
+            <div className="h-4 sm:h-5 w-full bg-gradient-to-b from-slate-200 via-slate-300 to-slate-400 dark:from-slate-800 dark:via-slate-850 dark:to-slate-900 rounded-b-2xl border-b border-x border-slate-300 dark:border-slate-700 shadow-2xl flex items-center justify-center">
+              {/* Ergonomic Opening Thumb Notch */}
+              <div className="w-20 sm:w-28 h-1.5 bg-slate-400/80 dark:bg-slate-700 rounded-b-md shadow-inner" />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -98,10 +98,10 @@ export const Lesson1AnimatedStage: React.FC<Lesson1AnimatedStageProps> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-indigo-400 text-xs font-mono font-bold uppercase">
                   <Binary className="w-4 h-4 text-indigo-400 animate-spin" style={{ animationDuration: '6s' }} />
-                  <span>Raw Facts, Values & Symbols</span>
+                  <span>Raw Facts, Values & Data Stream</span>
                 </div>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">
-                  Unstructured
+                  Write Stream
                 </span>
               </div>
 
@@ -109,31 +109,39 @@ export const Lesson1AnimatedStage: React.FC<Lesson1AnimatedStageProps> = ({
                 Data represents individual raw facts, symbols, and unorganized measurements. Inside hardware, all data is stored as electrical charges in memory cells.
               </p>
 
-              {/* Animated Floating Data Chips */}
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                {[
-                  { type: 'INTEGER', val: 42, bits: '32-bit (00101010)', col: 'indigo', active: pulseTick % 4 === 0 },
-                  { type: 'FLOAT', val: 3.1415, bits: 'IEEE 754 (4 Bytes)', col: 'emerald', active: pulseTick % 4 === 1 },
-                  { type: 'CHARACTER', val: "'A'", bits: 'ASCII 65 (01000001)', col: 'amber', active: pulseTick % 4 === 2 },
-                  { type: 'BOOLEAN', val: 'TRUE', bits: '1-bit (Flag 0b1)', col: 'rose', active: pulseTick % 4 === 3 },
-                ].map((item, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-2 rounded-lg border transition-all duration-300 ${
-                      item.active
-                        ? 'bg-indigo-950/70 border-indigo-500 shadow-md shadow-indigo-500/20 scale-[1.02]'
-                        : 'bg-slate-950 border-slate-800'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-[9px] font-mono text-slate-400">{item.type}</span>
-                      {item.active && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />}
-                    </div>
-                    <div className="font-mono font-black text-sm text-white">{item.val}</div>
-                    <div className="text-[9px] font-mono text-slate-500 truncate">{item.bits}</div>
+              {/* Animated Floating Data Chips with Changing Values */}
+              {(() => {
+                const liveInt = 42 + (pulseTick % 6);
+                const liveChar = String.fromCharCode(65 + (pulseTick % 3));
+                const liveBool = pulseTick % 20 < 10;
+
+                return (
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    {[
+                      { type: 'INTEGER', val: liveInt, bits: `32-bit (Dec: ${liveInt})`, col: 'indigo', active: pulseTick % 4 === 0 },
+                      { type: 'FLOAT', val: '3.1415', bits: 'IEEE 754 (4 Bytes)', col: 'emerald', active: pulseTick % 4 === 1 },
+                      { type: 'CHARACTER', val: `'${liveChar}'`, bits: `ASCII ${liveChar.charCodeAt(0)} (1 Byte)`, col: 'amber', active: pulseTick % 4 === 2 },
+                      { type: 'BOOLEAN', val: liveBool ? 'TRUE' : 'FALSE', bits: liveBool ? 'Bit: 1 (High)' : 'Bit: 0 (Low)', col: 'rose', active: pulseTick % 4 === 3 },
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-2 rounded-lg border transition-all duration-300 ${
+                          item.active
+                            ? 'bg-indigo-950/70 border-indigo-500 shadow-md shadow-indigo-500/20 scale-[1.02]'
+                            : 'bg-slate-950 border-slate-800'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] font-mono text-slate-400">{item.type}</span>
+                          {item.active && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />}
+                        </div>
+                        <div className="font-mono font-black text-sm text-white">{item.val}</div>
+                        <div className="text-[9px] font-mono text-slate-500 truncate">{item.bits}</div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                );
+              })()}
             </div>
 
             {/* Right Card: Physical RAM Grid with Active Address Bus */}
@@ -143,7 +151,9 @@ export const Lesson1AnimatedStage: React.FC<Lesson1AnimatedStageProps> = ({
                   <Activity className="w-3.5 h-3.5" />
                   PHYSICAL RAM REGISTERS
                 </span>
-                <span className="text-slate-500 text-[10px]">Bus: 32-bit Hex</span>
+                <span className="text-indigo-400 text-[10px] font-bold">
+                  Bus Pointer ➔ 0x100{Math.floor((sceneProgress * 4) % 4) * 4}
+                </span>
               </div>
 
               <div className="space-y-1.5">
@@ -163,7 +173,10 @@ export const Lesson1AnimatedStage: React.FC<Lesson1AnimatedStageProps> = ({
                           : 'bg-slate-950/70 border-slate-800/80 text-slate-400'
                       }`}
                     >
-                      <span className="text-[11px] font-bold text-slate-300">{slot.addr}</span>
+                      <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1">
+                        {isCurrent && <span className="text-emerald-400 text-xs">➔</span>}
+                        {slot.addr}
+                      </span>
                       <span className="text-[10px] tracking-wider text-slate-400 hidden sm:inline">{slot.bin}</span>
                       <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded bg-slate-900 border ${slot.col}`}>
                         {slot.type}
@@ -174,8 +187,8 @@ export const Lesson1AnimatedStage: React.FC<Lesson1AnimatedStageProps> = ({
               </div>
 
               <div className="p-2 rounded-lg bg-slate-950 border border-slate-800 text-[11px] text-slate-400 flex items-center justify-between font-mono">
-                <span>Memory Bus: READY</span>
-                <span className="text-emerald-400 font-bold">L1/L2 Spatial Align</span>
+                <span>Active Bus: WRITE OPERATION</span>
+                <span className="text-emerald-400 font-bold">L1/L2 Cache Locality</span>
               </div>
             </div>
           </div>
@@ -415,60 +428,77 @@ export const Lesson1AnimatedStage: React.FC<Lesson1AnimatedStageProps> = ({
           </div>
         )}
 
-        {/* SCENE 5: Primitive Data Types (Hardware Registers Simulator) */}
+        {/* SCENE 5: Primitive Data Types (Hardware Registers Simulator with Changing Values) */}
         {currentScene.id === 5 && (
           <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
-            {[
-              {
-                name: 'INTEGER (int)',
-                size: '32-bit (4 Bytes)',
-                bits: '00000000 00000000 00000000 00101010',
-                val: '= 42',
-                col: 'indigo',
-                desc: "Two's complement signed integer",
-              },
-              {
-                name: 'FLOAT (float)',
-                size: '32-bit (IEEE 754)',
-                bits: '01000000 01001001 00001111 11011011',
-                val: '≈ 3.1415',
-                col: 'emerald',
-                desc: 'Sign bit + 8-bit exp + 23-bit mantissa',
-              },
-              {
-                name: 'CHARACTER (char)',
-                size: '8-bit (1 Byte)',
-                bits: '01000001',
-                val: "= 'A' (ASCII 65)",
-                col: 'amber',
-                desc: 'ASCII byte mapping directly to glyph',
-              },
-              {
-                name: 'BOOLEAN (bool)',
-                size: '1-bit Logic Flag',
-                bits: '00000001',
-                val: '= TRUE (1)',
-                col: 'rose',
-                desc: 'Logical conditional branching gate',
-              },
-            ].map((reg, rIdx) => (
-              <div
-                key={rIdx}
-                className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-col justify-between space-y-1.5"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-white">{reg.name}</span>
-                  <span className="text-[10px] font-mono text-indigo-400">{reg.size}</span>
+            {(() => {
+              const liveInt = 42 + (pulseTick % 8);
+              const liveChar = String.fromCharCode(65 + (pulseTick % 4));
+              const liveBool = pulseTick % 20 < 10;
+              const liveIntBits = liveInt.toString(2).padStart(8, '0');
+
+              return [
+                {
+                  name: 'INTEGER (int)',
+                  size: '32-bit (4 Bytes)',
+                  bits: `00000000 00000000 00000000 ${liveIntBits}`,
+                  val: `= ${liveInt}`,
+                  col: 'indigo',
+                  desc: "Two's complement signed integer",
+                  badge: 'Clock Tick Active',
+                },
+                {
+                  name: 'FLOAT (float)',
+                  size: '32-bit (IEEE 754)',
+                  bits: '01000000 01001001 00001111 11011011',
+                  val: '≈ 3.1415',
+                  col: 'emerald',
+                  desc: 'Sign bit (0) + 8-bit Exp + 23-bit Mantissa',
+                  badge: 'IEEE Floating Pt',
+                },
+                {
+                  name: 'CHARACTER (char)',
+                  size: '8-bit (1 Byte)',
+                  bits: liveChar.charCodeAt(0).toString(2).padStart(8, '0'),
+                  val: `= '${liveChar}' (ASCII ${liveChar.charCodeAt(0)})`,
+                  col: 'amber',
+                  desc: 'Direct ASCII glyph mapped in RAM',
+                  badge: 'ASCII 8-bit',
+                },
+                {
+                  name: 'BOOLEAN (bool)',
+                  size: '1-bit Logic Flag',
+                  bits: liveBool ? '00000001 (High 1)' : '00000000 (Low 0)',
+                  val: liveBool ? '= TRUE (1)' : '= FALSE (0)',
+                  col: 'rose',
+                  desc: 'Logical conditional branching gate',
+                  badge: liveBool ? 'Flag HIGH' : 'Flag LOW',
+                },
+              ].map((reg, rIdx) => (
+                <div
+                  key={rIdx}
+                  className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-col justify-between space-y-1.5 transition-all duration-300"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-bold text-white flex items-center gap-1.5">
+                      <Cpu className="w-3.5 h-3.5 text-indigo-400" />
+                      {reg.name}
+                    </span>
+                    <span className="text-[10px] font-mono text-indigo-400">{reg.size}</span>
+                  </div>
+                  <div className="p-1.5 rounded-lg bg-slate-950 border border-slate-800/80 font-mono text-xs text-indigo-300 overflow-x-auto flex items-center justify-between">
+                    <span>{reg.bits}</span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 font-bold ml-1">
+                      {reg.badge}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs font-mono">
+                    <span className="text-slate-400 text-[11px]">{reg.desc}</span>
+                    <span className="font-bold text-emerald-400 text-sm">{reg.val}</span>
+                  </div>
                 </div>
-                <div className="p-1.5 rounded-lg bg-slate-950 border border-slate-800/80 font-mono text-xs text-indigo-300 overflow-x-auto">
-                  {reg.bits}
-                </div>
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-slate-400 text-[11px]">{reg.desc}</span>
-                  <span className="font-bold text-emerald-400">{reg.val}</span>
-                </div>
-              </div>
-            ))}
+              ));
+            })()}
           </div>
         )}
 

@@ -16,6 +16,7 @@ import {
   Eye,
   Home,
   Flame,
+  HelpCircle,
 } from 'lucide-react';
 import { QuizQuestion, UserProgress, QuizQuestionOutcome } from '../../types';
 import { QUIZ_QUESTIONS } from '../../data/quizData';
@@ -287,6 +288,31 @@ export const QuizView: React.FC<QuizViewProps> = ({
 
   return (
     <div className="space-y-6 pb-12 max-w-4xl mx-auto">
+      {/* ─── QUIZ ASSESSMENT HEADER CARD (MATCHING REFERENCE UI) ─── */}
+      {!isAllQuestionsFinished && (
+        <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-2xs">
+              <HelpCircle className="w-5 h-5 stroke-[2.5]" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                Quiz Assessment
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                Validate your algorithmic reasoning and earn mastery points (Basic to Hard).
+              </p>
+            </div>
+          </div>
+
+          <div className="self-end sm:self-center shrink-0">
+            <span className="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-mono font-bold text-xs border border-slate-200 dark:border-slate-700 shadow-2xs">
+              Question {currentIdx + 1} of 10
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* ─── SCORING AND START TIMER BOX (ONE COMPACT HORIZONTAL BOX - ONLY SHOWN DURING QUIZ) ─── */}
       {!isAllQuestionsFinished && (
         <div className="bg-[#fef9c3] dark:bg-amber-950/40 border border-[#fde047] dark:border-amber-700/70 rounded-2xl px-5 py-3.5 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3 text-sm">
